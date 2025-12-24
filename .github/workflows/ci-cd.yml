@@ -7,21 +7,29 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
+  build-and-security-scan:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+    - name: Set up Docker
+      uses: docker/setup-buildx-action@v3
 
-      - name: Build Backend Image
-        run: docker build -t aegisops-backend ./backend
+    - name: Build Backend Image
+      run: docker build -t aegisops-backend ./backend
 
-      - name: Build Frontend Image
-        run: docker build -t aegisops-frontend ./frontend
+    - name: Build Frontend Image
+      run: docker build -t aegisops-frontend ./frontend
 
-      - name: CI Success Message
-        run: echo "✅ AegisOps build successful - Simran Anand"
+    - name: 🔐 Trivy Scan – Backend Image
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: aegisops-backend
+        severity: HIGH,CRITICAL
+        exit-code: 1
+
+    - name: ✅ Secure Build Completed
+      run: echo "AegisOps DevSecOps pipeline passed – Simran Anand"
+

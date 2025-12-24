@@ -3,14 +3,44 @@ version: "3.8"
 services:
   backend:
     build: ./backend
+    container_name: aegisops-backend
     ports:
       - "8000:8000"
-    container_name: aegisops-backend
+    restart: unless-stopped
 
   frontend:
     build: ./frontend
+    container_name: aegisops-frontend
     ports:
       - "3000:80"
-    container_name: aegisops-frontend
     depends_on:
       - backend
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus
+    container_name: aegisops-prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana
+    container_name: aegisops-grafana
+    ports:
+      - "3001:3000"
+    restart: unless-stopped
+
+  loki:
+    image: grafana/loki
+    container_name: aegisops-loki
+    command: --config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./logging/loki-config.yml:/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+    restart: unless-stopped
